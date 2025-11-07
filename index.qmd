@@ -847,6 +847,8 @@ print("  • Values < 1.0× are underbetting (too conservative, lower growth pot
 print("  • Kelly optimal (1.0×) balances growth and risk optimally")
 print("=" * 80)
 
+```
+
 
 
 
