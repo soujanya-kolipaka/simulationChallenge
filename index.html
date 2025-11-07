@@ -321,7 +321,7 @@ Modified Strategy (25% at risk):
 ============================================================</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>C:\Users\souja\AppData\Local\Temp\ipykernel_45104\1715801292.py:90: MatplotlibDeprecationWarning: The 'labels' parameter of boxplot() has been renamed 'tick_labels' since Matplotlib 3.9; support for the old name will be dropped in 3.11.
+<pre><code>C:\Users\souja\AppData\Local\Temp\ipykernel_28016\1715801292.py:90: MatplotlibDeprecationWarning: The 'labels' parameter of boxplot() has been renamed 'tick_labels' since Matplotlib 3.9; support for the old name will be dropped in 3.11.
   bp = ax2.boxplot(box_data, labels=['Original', 'Modified\n(25% Risk)'],</code></pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -365,98 +365,48 @@ Modified Strategy (25% at risk):
 <p>📊 <strong>Practical Interpretation</strong></p>
 <p>The Kelly Criterion shows us that: - <strong>Less is often more</strong> in multiplicative games - <strong>Risk management matters more than maximizing expected value</strong> in repeated bets - <strong>The “optimal” bet size is usually much smaller</strong> than intuition suggests</p>
 <p>The modified strategy (25%) moves in the right direction but could be improved further by using the Kelly optimal fraction of 10%.</p>
-<p>#| label: q6-kelly-criterion-py #| echo: false #| fig-cap: “Kelly Criterion: Comparison of different betting fractions”</p>
-<p>import numpy as np import matplotlib.pyplot as plt</p>
-</section>
-</section>
-<section id="set-seed-for-reproducibility" class="level1">
-<h1>Set seed for reproducibility</h1>
-<p>np.random.seed(42)</p>
-</section>
-<section id="calculate-kelly-optimal-fraction" class="level1">
-<h1>Calculate Kelly optimal fraction</h1>
-<p>p = 0.5 # probability of win b = 0.5 # gain 50% on win a = 0.4 # lose 40% on loss</p>
-<p>kelly_fraction = (p * b - (1 - p) * a) / b print(f”Kelly Optimal Fraction: {kelly_fraction:.1%}“) print(f”Formula: f* = (p×b - (1-p)×a) / b = ({p}×{b} - {1-p}×{a}) / {b} = {kelly_fraction:.1%}“)</p>
-</section>
-<section id="simulate-different-betting-fractions-including-kelly-optimal" class="level1">
-<h1>Simulate different betting fractions including Kelly optimal</h1>
-<p>betting_fractions = [0.10, 0.25, 0.50, 1.0] # 10% (Kelly), 25% (modified), 50%, 100% (original) fraction_labels = [‘10% (Kelly)’, ‘25% (Modified)’, ‘50%’, ‘100% (Original)’] initial_wealth = 30000 n_years = 75 # Play until age 75 n_simulations = 100 # Use 100 simulations for robust comparison</p>
-<p>results = {}</p>
-</section>
-<section id="run-simulations-for-each-betting-fraction" class="level1">
-<h1>Run simulations for each betting fraction</h1>
-<p>for fraction in betting_fractions: final_balances = []</p>
-<pre><code>for _ in range(n_simulations):
-    wealth = initial_wealth
-    coin_flips = np.random.binomial(n=1, p=0.5, size=n_years)
-    
-    for flip in coin_flips:
-        risky = wealth * fraction
-        safe = wealth * (1 - fraction)
-        
-        if flip == 1:  # Heads: gain 50%
-            risky *= 1.5
-        else:  # Tails: lose 40%
-            risky *= 0.6
-        
-        wealth = risky + safe
-    final_balances.append(wealth)
+<div id="cell-q6-kelly-criterion-py" class="cell" data-execution_count="8">
+<div class="cell-output cell-output-stdout">
+<pre><code>Kelly Optimal Fraction: 10.0%
+Formula: f* = (p×b - (1-p)×a) / b = (0.5×0.5 - 0.5×0.4) / 0.5 = 10.0%
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div id="q6-kelly-criterion-py" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="index_files/figure-html/q6-kelly-criterion-py-output-2.png" width="1525" height="1150" class="figure-img"></p>
+<figcaption>Kelly Criterion: Comparison of different betting fractions</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+================================================================================
+KELLY CRITERION: COMPREHENSIVE COMPARISON OF BETTING FRACTIONS
+================================================================================
+Strategy             Fraction     Mean            Median          P(&gt;$30k)     Kelly Ratio 
+--------------------------------------------------------------------------------
+10% (Kelly)             10%     $      41,559   $      38,675        75.0%       1.0×
+25% (Modified)          25%     $      60,260   $      42,754        63.0%       2.5×
+50%                     50%     $     380,893   $      58,594        63.0%       5.0×
+100% (Original)        100%     $     271,649   $         365        13.0%      10.0×
+================================================================================
 
-final_balances = np.array(final_balances)
-results[fraction] = final_balances</code></pre>
-</section>
-<section id="create-comprehensive-visualization" class="level1">
-<h1>Create comprehensive visualization</h1>
-<p>fig = plt.figure(figsize=(16, 12))</p>
-</section>
-<section id="distribution-comparison-histograms" class="level1">
-<h1>1. Distribution comparison (histograms)</h1>
-<p>axes_hist = [] for i in range(4): ax = plt.subplot(3, 2, i+1) axes_hist.append(ax)</p>
-<pre><code>fraction = betting_fractions[i]
-final_balances = results[fraction]
+Kelly Optimal Fraction: 10.0% (1.0×)
 
-min_val = final_balances.min()
-max_val = final_balances.max()
-bins = np.logspace(np.log10(min_val), np.log10(max_val), 30)
+Key Insights:
+  • Original strategy (100%) is 10.0× the Kelly optimal → EXTREMELY AGGRESSIVE
+  • Modified strategy (25%) is 2.5× the Kelly optimal → Still overbetting
+  • Kelly optimal (10%) maximizes long-term growth rate
 
-mean_val = np.mean(final_balances)
-median_val = np.median(final_balances)
-prob_above = np.mean(final_balances &gt; initial_wealth)
-kelly_ratio = fraction / kelly_fraction
-
-# Color code: Kelly optimal gets special color
-color = 'green' if fraction == kelly_fraction else 'steelblue'
-
-ax.hist(final_balances, bins=bins, color=color, edgecolor='black', alpha=0.7)
-ax.axvline(initial_wealth, color='red', linestyle='--', linewidth=2, 
-           label=f'Initial: ${initial_wealth:,}')
-ax.axvline(mean_val, color='orange', linestyle=':', linewidth=2, 
-           label=f'Mean: ${mean_val:,.0f}')
-ax.set_xscale('log')
-ax.set_title(f'{fraction_labels[i]} ({fraction:.0%})\n'
-             f'Mean: ${mean_val:,.0f} | Median: ${median_val:,.0f}\n'
-             f'P(&gt;$30k): {prob_above:.1%} | Kelly Ratio: {kelly_ratio:.1f}×', 
-             fontsize=10, fontweight='bold')
-ax.set_xlabel('Final Balance ($, log scale)')
-ax.set_ylabel('Frequency')
-ax.legend(fontsize=8)
-ax.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.3)</code></pre>
+Interpretation:
+  • Values &gt; 1.0× are overbetting (too aggressive, higher volatility, lower median)
+  • Values &lt; 1.0× are underbetting (too conservative, lower growth potential)
+  • Kelly optimal (1.0×) balances growth and risk optimally
+================================================================================</code></pre>
+</div>
+</div>
 </section>
-<section id="summary-comparison-probability-of-success" class="level1">
-<h1>2. Summary comparison: Probability of success</h1>
-<p>ax5 = plt.subplot(3, 2, 5) probs = [np.mean(results[f] &gt; initial_wealth) for f in betting_fractions] colors_bar = [‘green’ if f == kelly_fraction else ‘steelblue’ for f in betting_fractions] bars = ax5.bar(fraction_labels, probs, color=colors_bar, alpha=0.7, edgecolor=‘black’, linewidth=2) ax5.axhline(0.5, color=‘gray’, linestyle=‘:’, linewidth=1, alpha=0.5) ax5.set_ylabel(‘Probability’, fontsize=11) ax5.set_title(‘Probability of Final Balance &gt; $30,000’, fontsize=12, fontweight=‘bold’) ax5.set_ylim(0, max(probs) * 1.2) # Add value labels for bar, prob in zip(bars, probs): height = bar.get_height() ax5.text(bar.get_x() + bar.get_width()/2., height, f’{prob:.1%}‘, ha=’center’, va=‘bottom’, fontsize=10, fontweight=‘bold’) ax5.grid(True, axis=‘y’, linestyle=‘–’, linewidth=0.5, alpha=0.3) plt.setp(ax5.xaxis.get_majorticklabels(), rotation=45, ha=‘right’)</p>
-</section>
-<section id="summary-comparison-median-final-balance" class="level1">
-<h1>3. Summary comparison: Median final balance</h1>
-<p>ax6 = plt.subplot(3, 2, 6) medians = [np.median(results[f]) for f in betting_fractions] bars = ax6.bar(fraction_labels, medians, color=colors_bar, alpha=0.7, edgecolor=‘black’, linewidth=2) ax6.axhline(initial_wealth, color=‘red’, linestyle=‘–’, linewidth=2, label=f’Initial: <span class="math inline">\({initial_wealth:,}')
-ax6.set_yscale('log')
-ax6.set_ylabel('Median Final Balance (\)</span>, log scale)‘, fontsize=11) ax6.set_title(’Median Final Balance by Betting Fraction’, fontsize=12, fontweight=‘bold’) ax6.legend(fontsize=9) ax6.grid(True, which=‘both’, linestyle=‘–’, linewidth=0.5, alpha=0.3) plt.setp(ax6.xaxis.get_majorticklabels(), rotation=45, ha=‘right’)</p>
-<p>plt.suptitle(‘Kelly Criterion Analysis: Impact of Betting Fraction on Final Wealth (75 Years)’, fontsize=14, fontweight=‘bold’, y=0.995) plt.tight_layout() plt.show()</p>
-</section>
-<section id="print-comprehensive-comparison-table" class="level1">
-<h1>Print comprehensive comparison table</h1>
-<p>print(“” + “=” * 80) print(“KELLY CRITERION: COMPREHENSIVE COMPARISON OF BETTING FRACTIONS”) print(“=” * 80) print(f”{‘Strategy’:&lt;20} {‘Fraction’:&lt;12} {‘Mean’:&lt;15} {‘Median’:&lt;15} {‘P(&gt;$30k)’:&lt;12} {‘Kelly Ratio’:&lt;12}“) print(”-” * 80) for i, fraction in enumerate(betting_fractions): data = results[fraction] mean_val = np.mean(data) median_val = np.median(data) prob_above = np.mean(data &gt; initial_wealth) kelly_ratio = fraction / kelly_fraction strategy_name = fraction_labels[i] print(f”{strategy_name:&lt;20} {fraction:&gt;6.0%} <span class="math inline">\({mean_val:&gt;12,.0f}   "
-          f"\)</span>{median_val:&gt;12,.0f} {prob_above:&gt;10.1%} {kelly_ratio:&gt;6.1f}×“) print(”=” * 80) print(f”Optimal Fraction: {kelly_fraction:.1%} (1.0×)“) print(”Insights:“) print(f” • Original strategy (100%) is {1.0/kelly_fraction:.1f}× the Kelly optimal → EXTREMELY AGGRESSIVE”) print(f” • Modified strategy (25%) is {0.25/kelly_fraction:.1f}× the Kelly optimal → Still overbetting”) print(f” • Kelly optimal (10%) maximizes long-term growth rate”) print(“:”) print(” • Values &gt; 1.0× are overbetting (too aggressive, higher volatility, lower median)“) print(” • Values &lt; 1.0× are underbetting (too conservative, lower growth potential)“) print(” • Kelly optimal (1.0×) balances growth and risk optimally”) print(“=” * 80)</p>
 </section>
 
 </main>
