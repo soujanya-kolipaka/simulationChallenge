@@ -183,15 +183,15 @@ After running 100 simulations, we observe a highly skewed distribution:
 
 📈 **Key Statistics Analysis**
 Let’s say the results were:
-- Mean final balance	$35,842.17
-- Median final balance	$14,932.45
-- Probability final balance > $30k	28%
+- Mean final balance	$83,785.58
+- Median final balance	$2,153.69
+- Probability final balance > $30k	24%
 Interpretation:
 Mean > $30k: Skewed by a few big wins
 
 Median < $30k: Most runs end with less than you started
 
-Only 28% of runs are profitable → 72% chance of losing money
+Only 24% of runs are profitable → 76% chance of losing money    
 
 🔍 **Why This Happens Analysis**
 This game is multiplicative, not additive. That means:
@@ -270,42 +270,73 @@ print(f"Probability final balance > $30,000: {prob_above_30k:.2%}")
 
 ```
 
- ### 4) Probability Balance > $30,000 at Age 75 (Original Game)
+### 4) Probability Balance > $30,000 at Age 75 (Original Game)
 
- TODO: Report the probability estimate and interpret its practical meaning.
-    Answer: The probability of your account balance being greater than $30,000 at age 75 is 0.01. This is a very low probability, and it is not very likely that you will have a positive balance at age 75.
+Report the probability estimate and interpret its practical meaning.
 
 📊 **Probability Balance > $30,000 at Age 75 Analysis**
-Using the 100 simulations above, we estimate the probability of your account balance being greater than $30,000 at age 75 is 0.01. This is a very low probability, and it is not very likely that you will have a positive balance at age 75.
-📊 **What This Means Analysis**
-- Out of 10,000 simulations, only 23.87% ended with a final balance greater than $30,000
-- That means there's a 71.7% chance you'll end up with less than you started
 
-🧠 **Why This Happens Analysis**
-- Even though each flip has a positive expected value, the game is multiplicative, and volatility compounds:
-- One heads followed by one tails: 1.5 * 0.6 = 0.9
-- You lose 10% of your wealth
-- Over 50 years, unless you get many heads in a row, your wealth tends to shrink.
-One heads followed by one tails:
+Using 100 simulations to get a robust estimate, we calculate the probability that your final balance exceeds the initial $30,000 investment after 50 years of playing the game.
 
-🚫 **Investment Verdict Analysis**
-This game is statistically unfavorable for most players. While a few lucky runs can yield high returns, the majority of outcomes are losses. It’s more like a gamble than a sound investment strategy.
+**Key Finding:** The probability of ending with more than $30,000 is quite low, typically around 24% depending on the specific simulation run. This means approximately **76% of the time, you will end up with less money than you started with**, despite the game having a positive expected value per flip.
+
+📈 **What This Means in Practice**
+
+- **Low success rate:** Only about 1 in 4 to 1 in 5 simulations result in a final balance above the initial investment
+- **High failure rate:** About 3 in 4 to 4 in 5 simulations end with losses
+- **Paradox of positive EV:** Even though each flip has a positive expected value (5% gain), most paths lead to losses over time
+
+🧠 **Why This Happens: The Multiplicative Volatility Trap**
+
+The counterintuitive result occurs because of how multiplicative games work:
+
+1. **Geometric mean vs. Arithmetic mean:**
+   - Arithmetic mean (expected value per flip): $31,500 → suggests you should play
+   - Geometric mean (long-term growth): $\sqrt{1.5 \times 0.6} = \sqrt{0.9} = 0.949$ → suggests you'll lose about 5% per flip pair
+   
+2. **The win-loss penalty:**
+   - One heads followed by one tails: $30,000 \times 1.5 \times 0.6 = 30,000 \times 0.9 = $27,000
+   - **You lose 10% even though you "broke even" on wins and losses!**
+   
+3. **Compounding volatility:**
+   - Over 50 years, you need significantly more heads than tails to grow
+   - With a fair coin, you're just as likely to get tails as heads
+   - The occasional losses compound and drag down most paths
+
+📉 **Distribution Characteristics**
+
+- **Highly skewed:** Most outcomes are low, but a few lucky runs can be extremely high
+- **Median < Mean:** The median is typically much lower than the mean, indicating most people lose
+- **Long right tail:** Rare but extreme gains skew the average upward
+
+🚫 **Investment Verdict**
+
+This game demonstrates why **expected value alone is insufficient** for investment decisions in multiplicative scenarios:
+
+- **Not recommended** for risk-averse investors
+- **Not recommended** for retirement planning
+- **High risk** with low probability of success
+- The game is **statistically unfavorable** for most players despite positive EV
+
+**Bottom line:** Even though the math suggests a positive expected value, the probability of actually ending up ahead is quite low. This is a perfect example of why risk management and understanding geometric returns matter more than simple expected value calculations.
 
 ```{python}
 #| label: q4-prob-original-py
 #| echo: false
+#| fig-cap: "Probability Analysis: Final Balance > $30,000"
 
-# TODO: Using the 100 simulations above, estimate P(final > 30000)
+# Estimate P(final > 30000) using large-scale simulation
 # - Print numeric result with 3 decimals
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Set seed for reproducibility
 np.random.seed(42)
 
 # Parameters
 initial_wealth = 30000
-n_years = 50  # Age 25 to 75
-n_simulations = 10000
+n_years = 75  # Playing until age 75 (assuming starting around age 25)
+n_simulations = 100 # Large sample for robust estimate
 
 # Store final balances
 final_balances = []
@@ -316,22 +347,106 @@ for _ in range(n_simulations):
     # Simulate coin flips for each year: 1 = heads (+50%), 0 = tails (-40%)
     coin_flips = np.random.binomial(n=1, p=0.5, size=n_years)
     for flip in coin_flips:
-        wealth *= 1.5 if flip == 1 else 0.6
+        if flip == 1:  # Heads: increase by 50%
+            wealth *= 1.5
+        else:  # Tails: decrease by 40%
+            wealth *= 0.6
     final_balances.append(wealth)
 
 # Convert to numpy array for analysis
 final_balances = np.array(final_balances)
 
-# Compute probability final balance > $30,000
+# Compute statistics
 prob_above_30k = np.mean(final_balances > initial_wealth)
+prob_below_30k = 1 - prob_above_30k
+mean_balance = np.mean(final_balances)
+median_balance = np.median(final_balances)
+std_balance = np.std(final_balances)
 
-# Print result
-print("### 4) Probability Balance > $30,000 at Age 75 (Original Game)")
-print(f"Probability: {prob_above_30k:.2%}")
+# Create visualization
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 
+# Left plot: Histogram with probability region highlighted
+min_val = final_balances.min()
+max_val = final_balances.max()
+bins = np.logspace(np.log10(min_val), np.log10(max_val), 50)
 
+# Color code bars: green for above $30k, red for below
+colors = ['red' if x < initial_wealth else 'green' for x in bins[:-1]]
+n, bins_edges, patches = ax1.hist(final_balances, bins=bins, edgecolor='black', alpha=0.7)
 
+# Color the bars
+for patch, color in zip(patches, colors):
+    patch.set_facecolor(color)
+    patch.set_alpha(0.6)
 
+ax1.axvline(initial_wealth, color='blue', linestyle='--', linewidth=3, 
+            label=f'Initial Investment: ${initial_wealth:,}', zorder=10)
+ax1.axvline(mean_balance, color='orange', linestyle=':', linewidth=2, 
+            label=f'Mean: ${mean_balance:,.0f}')
+ax1.axvline(median_balance, color='purple', linestyle=':', linewidth=2, 
+            label=f'Median: ${median_balance:,.0f}')
+ax1.set_xscale('log')
+ax1.set_title('Distribution of Final Balances (100 Simulations)', 
+              fontsize=13, fontweight='bold')
+ax1.set_xlabel('Final Balance ($, log scale)', fontsize=12)
+ax1.set_ylabel('Frequency', fontsize=12)
+ax1.legend(fontsize=10, loc='upper left')
+ax1.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.3)
+
+# Add text box with key statistics
+textstr = f'Probability > ${initial_wealth:,}: {prob_above_30k:.1%}\n'
+textstr += f'Probability < ${initial_wealth:,}: {prob_below_30k:.1%}\n'
+textstr += f'Mean: ${mean_balance:,.0f}\n'
+textstr += f'Median: ${median_balance:,.0f}'
+props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
+ax1.text(0.02, 0.98, textstr, transform=ax1.transAxes, fontsize=11,
+         verticalalignment='top', bbox=props)
+
+# Right plot: Probability comparison
+categories = ['Above\n$30,000', 'Below\n$30,000']
+probs = [prob_above_30k, prob_below_30k]
+colors_bar = ['green', 'red']
+bars = ax2.bar(categories, probs, color=colors_bar, alpha=0.7, 
+               edgecolor='black', linewidth=2)
+
+# Add value labels on bars
+for bar, prob in zip(bars, probs):
+    height = bar.get_height()
+    ax2.text(bar.get_x() + bar.get_width()/2., height,
+             f'{prob:.1%}', ha='center', va='bottom', 
+             fontsize=14, fontweight='bold')
+
+ax2.axhline(0.5, color='gray', linestyle=':', linewidth=1, alpha=0.5)
+ax2.set_ylabel('Probability', fontsize=12)
+ax2.set_title('Probability of Final Balance Relative to Initial Investment', 
+              fontsize=13, fontweight='bold')
+ax2.set_ylim(0, max(probs) * 1.15)
+ax2.grid(True, axis='y', linestyle='--', linewidth=0.5, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Print detailed results
+print("=" * 70)
+print("PROBABILITY ANALYSIS: Final Balance > $30,000 at Age 75")
+print("=" * 70)
+print(f"\nSimulation Parameters:")
+print(f"  Initial investment:     ${initial_wealth:,}")
+print(f"  Number of years:        {n_years}")
+print(f"  Number of simulations:  {n_simulations:,}")
+print(f"\nResults:")
+print(f"  P(final > ${initial_wealth:,}):  {prob_above_30k:.3f} ({prob_above_30k:.1%})")
+print(f"  P(final < ${initial_wealth:,}):  {prob_below_30k:.3f} ({prob_below_30k:.1%})")
+print(f"\nSummary Statistics:")
+print(f"  Mean final balance:     ${mean_balance:,.2f}")
+print(f"  Median final balance:   ${median_balance:,.2f}")
+print(f"  Std deviation:          ${std_balance:,.2f}")
+print(f"\nInterpretation:")
+print(f"  - Only {prob_above_30k:.1%} of simulations end above the initial investment")
+print(f"  - {prob_below_30k:.1%} of simulations result in losses")
+print(f"  - Despite positive expected value per flip, most paths lead to losses")
+print("=" * 70)
 ```
 
 ### 5) Modified Strategy (Bet Exactly 25% Each Round)
@@ -522,10 +637,221 @@ plt.show()
 
 ```
 
-  ### 6) Briefly Explain Your Findings From The Previous Step in Light of A Concept Known as the "Kelly Criterion"
-  What is the Kelly Criterion and how does it relate to the modified strategy?
-   
-📊 **Kelly Criterion Analysis**
-The Kelly Criterion is a formula that calculates the optimal amount to bet on a given event. It is a mathematical formula that maximizes the expected growth of your wealth. The modified strategy is riskier than the original game because it has a lower mean and median final balance. The original game has a higher mean and median final balance. The modified strategy has a higher probability of outcomes that you'd be happy with after having invested $30,000. The original game has a lower probability of outcomes that you'd be happy with after having invested $30,000.
+### 6) Briefly Explain Your Findings From The Previous Step in Light of A Concept Known as the "Kelly Criterion"
+
+What is the Kelly Criterion and how does it relate to the modified strategy?
+
+📚 **What is the Kelly Criterion?**
+
+The Kelly Criterion is a mathematical formula that determines the optimal fraction of wealth to bet in order to maximize long-term growth rate. Developed by John L. Kelly Jr. in 1956, it tells you how much to risk on each bet to maximize your expected logarithmic utility.
+
+**The Kelly Formula:**
+For a bet with:
+- **p** = probability of winning (0.5 in our coin flip)
+- **b** = net odds received on the wager (0.5 = gain 50%)
+- **a** = net odds you lose (0.4 = lose 40%)
+
+The optimal Kelly fraction is:
+$$f^* = \frac{pb - (1-p)a}{b}$$
+
+🧮 **Kelly Criterion for Our Investment Game**
+
+Let's calculate the Kelly optimal fraction for our coin flip game:
+
+- **p = 0.5** (fair coin, 50% chance of heads)
+- **b = 0.5** (heads: gain 50%)
+- **a = 0.4** (tails: lose 40%)
+
+$$f^* = \frac{0.5 \times 0.5 - 0.5 \times 0.4}{0.5} = \frac{0.25 - 0.20}{0.5} = \frac{0.05}{0.5} = 0.10 = 10\%$$
+
+**Result:** The Kelly Criterion suggests betting **10% of your wealth** each round, not 100% (original strategy) or 25% (modified strategy).
+
+🔍 **How This Relates to Our Strategies**
+
+1. **Original Strategy (100% at risk):** This is **10× the Kelly optimal**! This is extremely aggressive and explains why most simulations end with losses. You're overbetting by a factor of 10.
+
+2. **Modified Strategy (25% at risk):** This is **2.5× the Kelly optimal**. While better than the original, it's still overbetting and exposes you to unnecessary risk.
+
+3. **Kelly Optimal Strategy (10% at risk):** This would maximize long-term growth rate while avoiding excessive risk.
+
+💡 **Key Insights**
+
+- **Why the original strategy fails:** Betting 100% creates extreme volatility. Even though the expected value per flip is positive, the geometric mean (which determines long-term growth) suffers from overbetting.
+  
+- **Why the modified strategy is better:** Reducing risk to 25% improves outcomes, but it's still too aggressive compared to Kelly optimal (10%).
+
+- **The Kelly advantage:** Betting at the Kelly fraction maximizes the expected logarithmic utility, which translates to maximizing long-term wealth growth while avoiding ruin.
+
+📊 **Practical Interpretation**
+
+The Kelly Criterion shows us that:
+- **Less is often more** in multiplicative games
+- **Risk management matters more than maximizing expected value** in repeated bets
+- **The "optimal" bet size is usually much smaller** than intuition suggests
+
+The modified strategy (25%) moves in the right direction but could be improved further by using the Kelly optimal fraction of 10%.
+
+```{python}
+#| label: q6-kelly-criterion-py
+#| echo: false
+#| fig-cap: "Kelly Criterion: Comparison of different betting fractions"
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Set seed for reproducibility
+np.random.seed(42)
+
+# Calculate Kelly optimal fraction
+p = 0.5  # probability of win
+b = 0.5  # gain 50% on win
+a = 0.4  # lose 40% on loss
+
+kelly_fraction = (p * b - (1 - p) * a) / b
+print(f"Kelly Optimal Fraction: {kelly_fraction:.1%}")
+print(f"Formula: f* = (p×b - (1-p)×a) / b = ({p}×{b} - {1-p}×{a}) / {b} = {kelly_fraction:.1%}\n")
+
+# Simulate different betting fractions including Kelly optimal
+betting_fractions = [0.10, 0.25, 0.50, 1.0]  # 10% (Kelly), 25% (modified), 50%, 100% (original)
+fraction_labels = ['10% (Kelly)', '25% (Modified)', '50%', '100% (Original)']
+initial_wealth = 30000
+n_years = 75  # Play until age 75
+n_simulations = 100  # Use 100 simulations for robust comparison
+
+results = {}
+
+# Run simulations for each betting fraction
+for fraction in betting_fractions:
+    final_balances = []
+    
+    for _ in range(n_simulations):
+        wealth = initial_wealth
+        coin_flips = np.random.binomial(n=1, p=0.5, size=n_years)
+        
+        for flip in coin_flips:
+            risky = wealth * fraction
+            safe = wealth * (1 - fraction)
+            
+            if flip == 1:  # Heads: gain 50%
+                risky *= 1.5
+            else:  # Tails: lose 40%
+                risky *= 0.6
+            
+            wealth = risky + safe
+        final_balances.append(wealth)
+    
+    final_balances = np.array(final_balances)
+    results[fraction] = final_balances
+
+# Create comprehensive visualization
+fig = plt.figure(figsize=(16, 12))
+
+# 1. Distribution comparison (histograms)
+axes_hist = []
+for i in range(4):
+    ax = plt.subplot(3, 2, i+1)
+    axes_hist.append(ax)
+    
+    fraction = betting_fractions[i]
+    final_balances = results[fraction]
+    
+    min_val = final_balances.min()
+    max_val = final_balances.max()
+    bins = np.logspace(np.log10(min_val), np.log10(max_val), 30)
+    
+    mean_val = np.mean(final_balances)
+    median_val = np.median(final_balances)
+    prob_above = np.mean(final_balances > initial_wealth)
+    kelly_ratio = fraction / kelly_fraction
+    
+    # Color code: Kelly optimal gets special color
+    color = 'green' if fraction == kelly_fraction else 'steelblue'
+    
+    ax.hist(final_balances, bins=bins, color=color, edgecolor='black', alpha=0.7)
+    ax.axvline(initial_wealth, color='red', linestyle='--', linewidth=2, 
+               label=f'Initial: ${initial_wealth:,}')
+    ax.axvline(mean_val, color='orange', linestyle=':', linewidth=2, 
+               label=f'Mean: ${mean_val:,.0f}')
+    ax.set_xscale('log')
+    ax.set_title(f'{fraction_labels[i]} ({fraction:.0%})\n'
+                 f'Mean: ${mean_val:,.0f} | Median: ${median_val:,.0f}\n'
+                 f'P(>$30k): {prob_above:.1%} | Kelly Ratio: {kelly_ratio:.1f}×', 
+                 fontsize=10, fontweight='bold')
+    ax.set_xlabel('Final Balance ($, log scale)')
+    ax.set_ylabel('Frequency')
+    ax.legend(fontsize=8)
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.3)
+
+# 2. Summary comparison: Probability of success
+ax5 = plt.subplot(3, 2, 5)
+probs = [np.mean(results[f] > initial_wealth) for f in betting_fractions]
+colors_bar = ['green' if f == kelly_fraction else 'steelblue' for f in betting_fractions]
+bars = ax5.bar(fraction_labels, probs, color=colors_bar, alpha=0.7, 
+               edgecolor='black', linewidth=2)
+ax5.axhline(0.5, color='gray', linestyle=':', linewidth=1, alpha=0.5)
+ax5.set_ylabel('Probability', fontsize=11)
+ax5.set_title('Probability of Final Balance > $30,000', fontsize=12, fontweight='bold')
+ax5.set_ylim(0, max(probs) * 1.2)
+# Add value labels
+for bar, prob in zip(bars, probs):
+    height = bar.get_height()
+    ax5.text(bar.get_x() + bar.get_width()/2., height,
+             f'{prob:.1%}', ha='center', va='bottom', 
+             fontsize=10, fontweight='bold')
+ax5.grid(True, axis='y', linestyle='--', linewidth=0.5, alpha=0.3)
+plt.setp(ax5.xaxis.get_majorticklabels(), rotation=45, ha='right')
+
+# 3. Summary comparison: Median final balance
+ax6 = plt.subplot(3, 2, 6)
+medians = [np.median(results[f]) for f in betting_fractions]
+bars = ax6.bar(fraction_labels, medians, color=colors_bar, alpha=0.7, 
+               edgecolor='black', linewidth=2)
+ax6.axhline(initial_wealth, color='red', linestyle='--', linewidth=2, 
+            label=f'Initial: ${initial_wealth:,}')
+ax6.set_yscale('log')
+ax6.set_ylabel('Median Final Balance ($, log scale)', fontsize=11)
+ax6.set_title('Median Final Balance by Betting Fraction', fontsize=12, fontweight='bold')
+ax6.legend(fontsize=9)
+ax6.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.3)
+plt.setp(ax6.xaxis.get_majorticklabels(), rotation=45, ha='right')
+
+plt.suptitle('Kelly Criterion Analysis: Impact of Betting Fraction on Final Wealth (75 Years)', 
+             fontsize=14, fontweight='bold', y=0.995)
+plt.tight_layout()
+plt.show()
+
+# Print comprehensive comparison table
+print("\n" + "=" * 80)
+print("KELLY CRITERION: COMPREHENSIVE COMPARISON OF BETTING FRACTIONS")
+print("=" * 80)
+print(f"{'Strategy':<20} {'Fraction':<12} {'Mean':<15} {'Median':<15} {'P(>$30k)':<12} {'Kelly Ratio':<12}")
+print("-" * 80)
+for i, fraction in enumerate(betting_fractions):
+    data = results[fraction]
+    mean_val = np.mean(data)
+    median_val = np.median(data)
+    prob_above = np.mean(data > initial_wealth)
+    kelly_ratio = fraction / kelly_fraction
+    strategy_name = fraction_labels[i]
+    print(f"{strategy_name:<20} {fraction:>6.0%}     ${mean_val:>12,.0f}   "
+          f"${median_val:>12,.0f}   {prob_above:>10.1%}    {kelly_ratio:>6.1f}×")
+print("=" * 80)
+print(f"\nKelly Optimal Fraction: {kelly_fraction:.1%} (1.0×)")
+print("\nKey Insights:")
+print(f"  • Original strategy (100%) is {1.0/kelly_fraction:.1f}× the Kelly optimal → EXTREMELY AGGRESSIVE")
+print(f"  • Modified strategy (25%) is {0.25/kelly_fraction:.1f}× the Kelly optimal → Still overbetting")
+print(f"  • Kelly optimal (10%) maximizes long-term growth rate")
+print("\nInterpretation:")
+print("  • Values > 1.0× are overbetting (too aggressive, higher volatility, lower median)")
+print("  • Values < 1.0× are underbetting (too conservative, lower growth potential)")
+print("  • Kelly optimal (1.0×) balances growth and risk optimally")
+print("=" * 80)
+
+
+
+
+
+
+
 
 
